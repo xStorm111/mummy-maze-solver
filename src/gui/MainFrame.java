@@ -31,7 +31,7 @@ import searchmethods.DepthLimitedSearch;
 import searchmethods.SearchMethod;
 
 public class MainFrame extends JFrame {
-    private char[][] initialMatrix = {{1, 0, 2}, {3, 4, 5}, {6, 7, 8}};
+    private char[][] initialMatrix = {{1, 0, 2}, {1, 0, 2}, {1, 0, 2}};
     private MummyMazeAgent agent = new MummyMazeAgent(new MummyMazeState(initialMatrix));
     private JComboBox comboBoxSearchMethods;
     private JComboBox comboBoxHeuristics;
@@ -65,7 +65,7 @@ public class MainFrame extends JFrame {
         panelButtons.add(buttonInitialState);
         buttonInitialState.addActionListener(new ButtonInitialState_ActionAdapter(this));
         panelButtons.add(buttonSolve);
-//        buttonSolve.addActionListener(new ButtonSolve_ActionAdapter(this));
+        buttonSolve.addActionListener(new ButtonSolve_ActionAdapter(this));
         panelButtons.add(buttonStop);
         buttonStop.setEnabled(false);
         buttonStop.addActionListener(new ButtonStop_ActionAdapter(this));
@@ -154,6 +154,7 @@ public class MainFrame extends JFrame {
                 buttonStop.setEnabled(true);
                 buttonSolve.setEnabled(false);
                 try {
+
                     prepareSearchAlgorithm();
                     MummyMazeProblem problem = new MummyMazeProblem((MummyMazeState) agent.getEnvironment().clone());
                     agent.solveProblem(problem);

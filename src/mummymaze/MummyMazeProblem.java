@@ -41,10 +41,8 @@ public class MummyMazeProblem extends Problem<MummyMazeState> {
 
     @Override
     public boolean isGoal(MummyMazeState state) {
-        //TODO
-        //heroi em cima da escada
         //linha/coluna hero == linha/coluna porta
-        return true;
+        return state.getColumnHero() == state.getColumnExit() && state.getLineHero() == state.getLineExit();
     }
 
     @Override

@@ -13,6 +13,8 @@ import java.awt.Toolkit;
 
 import javax.swing.JPanel;
 
+import static gui.Properties.MATRIX_LINE_COLUMN_SIZE;
+
 public class GameArea extends JPanel implements MummyMazeListener {
 	
 	private Image trap;
@@ -78,8 +80,8 @@ public class GameArea extends JPanel implements MummyMazeListener {
 
 		char[][] matrix = state.getMatrix();
 
-		for(int i = 0; i < 13; i++) {
-			for(int j = 0; j < 13; j++) {				
+		for(int i = 0; i < MATRIX_LINE_COLUMN_SIZE; i++) {
+			for(int j = 0; j < MATRIX_LINE_COLUMN_SIZE; j++) {
 				switch(matrix[i][j]) {
 					case '-' : g.drawImage(wallHorizontal,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
 					case '=' : g.drawImage(doorHorizontalClosed,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
@@ -93,7 +95,10 @@ public class GameArea extends JPanel implements MummyMazeListener {
 					case 'A' : g.drawImage(trap,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
 					case 'E' : g.drawImage(scorpion,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
 					case 'C' : g.drawImage(key,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
-					case 'S' : g.drawImage(i == 0 ? stairsUp : i == 12 ? stairsDown : j == 0 ? stairsLeft : stairsRight,j == 0 ? xStart + (j-2)/2 * 60 : xStart + j/2 * 60, i ==0 ? yStart + (i-2)/2 * 60 -6 : yStart + i/2 * 60,this); break;
+					case 'S' :
+//						System.out.println("OLA");
+						g.drawImage(i == 0 ? stairsUp : i == 12 ? stairsDown : j == 0 ? stairsLeft : stairsRight,j == 0 ? xStart + (j-2)/2 * 60 : xStart + j/2 * 60, i ==0 ? yStart + (i-2)/2 * 60 -6 : yStart + i/2 * 60,this);
+						break;
 				}
 			}
 		}
