@@ -11,8 +11,13 @@ import static gui.Properties.MATRIX_LINE_COLUMN_SIZE;
 public class MummyMazeState extends State implements Cloneable {
 
     private final char[][] matrix;
+
     private int lineHero;
     private int columnHero;
+
+    private int lineWhiteMummy;
+    private int columnWhiteMummy;
+
     private int lineExit;
     private int columnExit;
 
@@ -22,13 +27,20 @@ public class MummyMazeState extends State implements Cloneable {
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix.length; j++) {
                 this.matrix[i][j] = matrix[i][j];
-                if (this.matrix[i][j] == 'H') {
-                    lineHero = i;
-                    columnHero = j;
-                }
-                if (this.matrix[i][j] == 'S') {
-                    lineExit = i;
-                    columnExit = j;
+
+                switch (this.matrix[i][j]) {
+                    case 'H' -> {
+                        lineHero = i;
+                        columnHero = j;
+                    }
+                    case 'M' -> {
+                        lineWhiteMummy = i;
+                        columnWhiteMummy = j;
+                    }
+                    case 'S' -> {
+                        lineExit = i;
+                        columnExit = j;
+                    }
                 }
             }
         }
@@ -41,27 +53,65 @@ public class MummyMazeState extends State implements Cloneable {
     }
 
     public boolean canMoveUp() {
+        if(HeroIsDead())
+            return false;
+
         return (lineHero > 1 && matrix[lineHero - 1][columnHero] != '-' && matrix[lineHero - 2][columnHero] == '.')
                 ||
                 (lineHero == 1 && matrix[lineHero - 1][columnHero] == 'S');
     }
 
     public boolean canMoveDown() {
+        if(HeroIsDead())
+            return false;
+
         return (lineHero < MATRIX_LINE_COLUMN_SIZE - 2 && matrix[lineHero + 1][columnHero] != '-' && matrix[lineHero + 2][columnHero] == '.')
                 ||
                 (lineHero == MATRIX_LINE_COLUMN_SIZE - 2 && matrix[lineHero + 1][columnHero] == 'S');
     }
 
     public boolean canMoveRight() {
+        if(HeroIsDead())
+            return false;
+
         return (columnHero < MATRIX_LINE_COLUMN_SIZE - 2 && matrix[lineHero][columnHero + 1] != '|' && matrix[lineHero][columnHero + 2] == '.')
                 ||
                 (columnHero == MATRIX_LINE_COLUMN_SIZE - 2 && matrix[lineHero][columnHero + 1] == 'S');
     }
 
     public boolean canMoveLeft() {
+        if(HeroIsDead())
+            return false;
+
         return (columnHero > 1 && matrix[lineHero][columnHero - 1] != '|' && matrix[lineHero][columnHero - 2] == '.')
                 ||
                 (columnHero == 1 && matrix[lineHero][columnHero - 1] == 'S');
+    }
+
+    public boolean shouldStay() {
+        return false;
+//        if(HeroIsDead())
+//            return false;
+//
+//        if(columnHero > columnWhiteMummy)
+//        {
+//            if(lineHero > lineWhiteMummy)
+//            {
+//                //White mummy wants to move right
+//
+//            }
+//            else if(lineHero < lineWhiteMummy){
+//                //White mummy wants to move right
+//
+//            }
+//            else{
+//                //White mummy wants to move down
+//
+//            }
+//        }
+//        return (columnHero > 1 && matrix[lineHero][columnHero - 1] == '|' && matrix[lineHero][columnHero - 2] == '.')
+//                ||
+//                (columnHero == 1 && matrix[lineHero][columnHero - 1] == 'S');
     }
 
     /*
@@ -76,6 +126,9 @@ public class MummyMazeState extends State implements Cloneable {
             moveVertical(-1);
         else
             moveVertical(-2);
+
+        moveWhiteMummy();
+        moveWhiteMummy();
     }
 
     public void moveDown() {
@@ -83,13 +136,21 @@ public class MummyMazeState extends State implements Cloneable {
             moveVertical(1);
         else
             moveVertical(2);
+
+        moveWhiteMummy();
+        moveWhiteMummy();
     }
+
+
 
     public void moveLeft() {
         if (columnHero == 1)
             moveHorizontal(-1);
         else
             moveHorizontal(-2);
+
+        moveWhiteMummy();
+        moveWhiteMummy();
     }
 
     public void moveRight() {
@@ -97,7 +158,12 @@ public class MummyMazeState extends State implements Cloneable {
             moveHorizontal(1);
         else
             moveHorizontal(2);
+
+        moveWhiteMummy();
+        moveWhiteMummy();
     }
+
+
 
     //no need for finalState, we can already compare with door
     public double computeTilesOutOfPlace() {
@@ -217,11 +283,93 @@ public class MummyMazeState extends State implements Cloneable {
         matrix[lineHero][columnHero] = 'H';
     }
 
+    private void moveWhiteMummy(){
+        if(HeroIsDead())
+            return;
+
+        if (moveMummyLeft())
+            return;
+
+        if (moveMummyRight())
+            return;
+
+        if (moveMummyUp())
+            return;
+
+        moveMummyDown();
+
+    }
+
+    private boolean moveMummyUp(){
+        if(lineWhiteMummy > lineHero && matrix[lineWhiteMummy - 1][columnWhiteMummy] != '-'){
+            killHero(matrix[lineWhiteMummy - 2][columnWhiteMummy] == 'H');
+
+            matrix[lineWhiteMummy][columnWhiteMummy] = '.';
+
+            lineWhiteMummy = lineWhiteMummy - 2;
+            matrix[lineWhiteMummy][columnWhiteMummy] = 'M';
+            return true;
+        }
+        return false;
+    }
+    private boolean moveMummyDown(){
+        if(lineWhiteMummy < lineHero && matrix[lineWhiteMummy + 1][columnWhiteMummy] != '-'){
+            killHero(matrix[lineWhiteMummy + 2][columnWhiteMummy] == 'H');
+
+            matrix[lineWhiteMummy][columnWhiteMummy] = '.';
+
+            lineWhiteMummy = lineWhiteMummy + 2;
+            matrix[lineWhiteMummy][columnWhiteMummy] = 'M';
+            return true;
+        }
+        return false;
+    }
+    private boolean moveMummyLeft(){
+        if(columnWhiteMummy > columnHero && matrix[lineWhiteMummy][columnWhiteMummy - 1] != '|'){
+
+            killHero(matrix[lineWhiteMummy][columnWhiteMummy - 2] == 'H');
+
+            matrix[lineWhiteMummy][columnWhiteMummy] = '.';
+
+            columnWhiteMummy = columnWhiteMummy - 2;
+            matrix[lineWhiteMummy][columnWhiteMummy] = 'M';
+            return true;
+        }
+        return false;
+    }
+    private boolean moveMummyRight(){
+        if(columnWhiteMummy < columnHero && matrix[lineWhiteMummy][columnWhiteMummy + 1] != '|'){
+
+            killHero(matrix[lineWhiteMummy][columnWhiteMummy + 2] == 'H');
+
+            matrix[lineWhiteMummy][columnWhiteMummy] = '.';
+
+            columnWhiteMummy = columnWhiteMummy + 2;
+            matrix[lineWhiteMummy][columnWhiteMummy] = 'M';
+
+            return true;
+        }
+        return false;
+    }
+
     public int getLineExit() {
         return lineExit;
     }
 
     public int getColumnExit() {
         return columnExit;
+    }
+
+    private void killHero(boolean condition){
+        if(condition)
+        {
+            lineHero = -1;
+            columnHero = -1;
+        }
+    }
+
+    //if a mais?
+    private boolean HeroIsDead(){
+        return lineHero == -1 || columnHero == -1;
     }
 }
