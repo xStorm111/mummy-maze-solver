@@ -6,7 +6,7 @@ import agent.State;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static gui.Properties.MATRIX_LINE_COLUMN_SIZE;
+import static gui.Properties.*;
 
 public class MummyMazeState extends State implements Cloneable {
 
@@ -18,8 +18,30 @@ public class MummyMazeState extends State implements Cloneable {
     private int lineWhiteMummy;
     private int columnWhiteMummy;
 
+    private int lineRedMummy;
+    private int columnRedMummy;
+
+    private int lineScorpion;
+    private int columnScorpion;
+
+    private int lineTrap;
+    private int columnTrap;
+
+    private int lineKey;
+    private int columnKey;
+
+    //used when something is in key position
+    private int tempLineKey;
+    private int tempColumnKey;
+
+    private int lineDoor;
+    private int columnDoor;
+    private boolean doorIsVertical;
+    private boolean doorIsOpen;
+
     private int lineExit;
     private int columnExit;
+
 
     public MummyMazeState(char[][] matrix) {
         this.matrix = new char[matrix.length][matrix.length];
@@ -29,17 +51,58 @@ public class MummyMazeState extends State implements Cloneable {
                 this.matrix[i][j] = matrix[i][j];
 
                 switch (this.matrix[i][j]) {
-                    case 'H' -> {
+                    case HERO_CHAR -> {
                         lineHero = i;
                         columnHero = j;
                     }
-                    case 'M' -> {
+                    case EXIT_CHAR -> {
+                        lineExit = i;
+                        columnExit = j;
+                    }
+                    case WHITE_MUMMY_CHAR -> {
                         lineWhiteMummy = i;
                         columnWhiteMummy = j;
                     }
-                    case 'S' -> {
-                        lineExit = i;
-                        columnExit = j;
+                    case RED_MUMMY_CHAR -> {
+                        lineRedMummy = i;
+                        columnRedMummy = j;
+                    }
+                    case SCORPION_CHAR -> {
+                        lineScorpion = i;
+                        columnScorpion = j;
+                    }
+                    case TRAP_CHAR -> {
+                        lineTrap = i;
+                        columnTrap = j;
+                    }
+                    case KEY_CHAR -> {
+                        lineKey = i;
+                        columnKey = j;
+                    }
+                    case HORIZONTAL_DOOR_CLOSED_CHAR -> {
+                        lineDoor = i;
+                        columnDoor = j;
+                        doorIsVertical = false;
+                        doorIsOpen = false;
+                    }
+                    case HORIZONTAL_DOOR_OPEN_CHAR -> {
+                        lineDoor = i;
+                        columnDoor = j;
+                        doorIsVertical = false;
+                        doorIsOpen = true;
+                    }
+
+                    case VERTICAL_DOOR_CLOSED_CHAR -> {
+                        lineDoor = i;
+                        columnDoor = j;
+                        doorIsVertical = true;
+                        doorIsOpen = false;
+                    }
+                    case VERTICAL_DOOR_OPEN_CHAR -> {
+                        lineDoor = i;
+                        columnDoor = j;
+                        doorIsVertical = true;
+                        doorIsOpen = true;
                     }
                 }
             }
@@ -56,36 +119,52 @@ public class MummyMazeState extends State implements Cloneable {
         if(HeroIsDead())
             return false;
 
-        return (lineHero > 1 && matrix[lineHero - 1][columnHero] != '-' && matrix[lineHero - 2][columnHero] == '.')
+        return (lineHero > 1
+                && matrix[lineHero - 1][columnHero] != WALL_HORIZONTAL_CHAR
+                && matrix[lineHero - 1][columnHero] != HORIZONTAL_DOOR_CLOSED_CHAR
+                && (matrix[lineHero - 2][columnHero] == TILE_CHAR || matrix[lineHero - 2][columnHero] == KEY_CHAR)
+        )
                 ||
-                (lineHero == 1 && matrix[lineHero - 1][columnHero] == 'S');
+                (lineHero == 1 && matrix[lineHero - 1][columnHero] == EXIT_CHAR);
     }
 
     public boolean canMoveDown() {
         if(HeroIsDead())
             return false;
 
-        return (lineHero < MATRIX_LINE_COLUMN_SIZE - 2 && matrix[lineHero + 1][columnHero] != '-' && matrix[lineHero + 2][columnHero] == '.')
+        return (lineHero < MATRIX_LINE_COLUMN_SIZE - 2
+                && matrix[lineHero + 1][columnHero] != WALL_HORIZONTAL_CHAR
+                && matrix[lineHero + 1][columnHero] != HORIZONTAL_DOOR_CLOSED_CHAR
+                && (matrix[lineHero + 2][columnHero] == TILE_CHAR || matrix[lineHero + 2][columnHero] == KEY_CHAR)
+        )
                 ||
-                (lineHero == MATRIX_LINE_COLUMN_SIZE - 2 && matrix[lineHero + 1][columnHero] == 'S');
+                (lineHero == MATRIX_LINE_COLUMN_SIZE - 2 && matrix[lineHero + 1][columnHero] == EXIT_CHAR);
     }
 
     public boolean canMoveRight() {
         if(HeroIsDead())
             return false;
 
-        return (columnHero < MATRIX_LINE_COLUMN_SIZE - 2 && matrix[lineHero][columnHero + 1] != '|' && matrix[lineHero][columnHero + 2] == '.')
+        return (columnHero < MATRIX_LINE_COLUMN_SIZE - 2
+                && matrix[lineHero][columnHero + 1] != WALL_VERTICAL_CHAR
+                && matrix[lineHero][columnHero + 1] != VERTICAL_DOOR_CLOSED_CHAR
+                && (matrix[lineHero][columnHero + 2] == TILE_CHAR || matrix[lineHero][columnHero + 2] == KEY_CHAR)
+        )
                 ||
-                (columnHero == MATRIX_LINE_COLUMN_SIZE - 2 && matrix[lineHero][columnHero + 1] == 'S');
+                (columnHero == MATRIX_LINE_COLUMN_SIZE - 2 && matrix[lineHero][columnHero + 1] == EXIT_CHAR);
     }
 
     public boolean canMoveLeft() {
         if(HeroIsDead())
             return false;
 
-        return (columnHero > 1 && matrix[lineHero][columnHero - 1] != '|' && matrix[lineHero][columnHero - 2] == '.')
+        return (columnHero > 1
+                && matrix[lineHero][columnHero - 1] != WALL_VERTICAL_CHAR
+                && matrix[lineHero][columnHero - 1] != VERTICAL_DOOR_CLOSED_CHAR
+                && (matrix[lineHero][columnHero - 2] == TILE_CHAR || matrix[lineHero][columnHero - 2] == KEY_CHAR)
+        )
                 ||
-                (columnHero == 1 && matrix[lineHero][columnHero - 1] == 'S');
+                (columnHero == 1 && matrix[lineHero][columnHero - 1] == EXIT_CHAR);
     }
 
     public boolean shouldStay() {
@@ -109,9 +188,9 @@ public class MummyMazeState extends State implements Cloneable {
 //
 //            }
 //        }
-//        return (columnHero > 1 && matrix[lineHero][columnHero - 1] == '|' && matrix[lineHero][columnHero - 2] == '.')
+//        return (columnHero > 1 && matrix[lineHero][columnHero - 1] == WALL_VERTICAL_CHAR && matrix[lineHero][columnHero - 2] == TILE_CHAR)
 //                ||
-//                (columnHero == 1 && matrix[lineHero][columnHero - 1] == 'S');
+//                (columnHero == 1 && matrix[lineHero][columnHero - 1] == EXIT_CHAR);
     }
 
     /*
@@ -126,9 +205,11 @@ public class MummyMazeState extends State implements Cloneable {
             moveVertical(-1);
         else
             moveVertical(-2);
-
-        moveWhiteMummy();
-        moveWhiteMummy();
+        if(columnWhiteMummy > 0 && lineWhiteMummy > 0)
+        {
+            moveWhiteMummy();
+            moveWhiteMummy();
+        }
     }
 
     public void moveDown() {
@@ -137,8 +218,11 @@ public class MummyMazeState extends State implements Cloneable {
         else
             moveVertical(2);
 
-        moveWhiteMummy();
-        moveWhiteMummy();
+        if(columnWhiteMummy > 0 && lineWhiteMummy > 0)
+        {
+            moveWhiteMummy();
+            moveWhiteMummy();
+        }
     }
 
 
@@ -149,8 +233,11 @@ public class MummyMazeState extends State implements Cloneable {
         else
             moveHorizontal(-2);
 
-        moveWhiteMummy();
-        moveWhiteMummy();
+        if(columnWhiteMummy > 0 && lineWhiteMummy > 0)
+        {
+            moveWhiteMummy();
+            moveWhiteMummy();
+        }
     }
 
     public void moveRight() {
@@ -159,8 +246,11 @@ public class MummyMazeState extends State implements Cloneable {
         else
             moveHorizontal(2);
 
-        moveWhiteMummy();
-        moveWhiteMummy();
+        if(columnWhiteMummy > 0 && lineWhiteMummy > 0)
+        {
+            moveWhiteMummy();
+            moveWhiteMummy();
+        }
     }
 
 
@@ -269,89 +359,6 @@ public class MummyMazeState extends State implements Cloneable {
         }
     }
 
-    private void moveVertical(int positions) {
-        matrix[lineHero][columnHero] = '.';
-
-        lineHero = lineHero + positions;
-        matrix[lineHero][columnHero] = 'H';
-    }
-
-    private void moveHorizontal(int positions) {
-        matrix[lineHero][columnHero] = '.';
-
-        columnHero = columnHero + positions;
-        matrix[lineHero][columnHero] = 'H';
-    }
-
-    private void moveWhiteMummy(){
-        if(HeroIsDead())
-            return;
-
-        if (moveMummyLeft())
-            return;
-
-        if (moveMummyRight())
-            return;
-
-        if (moveMummyUp())
-            return;
-
-        moveMummyDown();
-
-    }
-
-    private boolean moveMummyUp(){
-        if(lineWhiteMummy > lineHero && matrix[lineWhiteMummy - 1][columnWhiteMummy] != '-'){
-            killHero(matrix[lineWhiteMummy - 2][columnWhiteMummy] == 'H');
-
-            matrix[lineWhiteMummy][columnWhiteMummy] = '.';
-
-            lineWhiteMummy = lineWhiteMummy - 2;
-            matrix[lineWhiteMummy][columnWhiteMummy] = 'M';
-            return true;
-        }
-        return false;
-    }
-    private boolean moveMummyDown(){
-        if(lineWhiteMummy < lineHero && matrix[lineWhiteMummy + 1][columnWhiteMummy] != '-'){
-            killHero(matrix[lineWhiteMummy + 2][columnWhiteMummy] == 'H');
-
-            matrix[lineWhiteMummy][columnWhiteMummy] = '.';
-
-            lineWhiteMummy = lineWhiteMummy + 2;
-            matrix[lineWhiteMummy][columnWhiteMummy] = 'M';
-            return true;
-        }
-        return false;
-    }
-    private boolean moveMummyLeft(){
-        if(columnWhiteMummy > columnHero && matrix[lineWhiteMummy][columnWhiteMummy - 1] != '|'){
-
-            killHero(matrix[lineWhiteMummy][columnWhiteMummy - 2] == 'H');
-
-            matrix[lineWhiteMummy][columnWhiteMummy] = '.';
-
-            columnWhiteMummy = columnWhiteMummy - 2;
-            matrix[lineWhiteMummy][columnWhiteMummy] = 'M';
-            return true;
-        }
-        return false;
-    }
-    private boolean moveMummyRight(){
-        if(columnWhiteMummy < columnHero && matrix[lineWhiteMummy][columnWhiteMummy + 1] != '|'){
-
-            killHero(matrix[lineWhiteMummy][columnWhiteMummy + 2] == 'H');
-
-            matrix[lineWhiteMummy][columnWhiteMummy] = '.';
-
-            columnWhiteMummy = columnWhiteMummy + 2;
-            matrix[lineWhiteMummy][columnWhiteMummy] = 'M';
-
-            return true;
-        }
-        return false;
-    }
-
     public int getLineExit() {
         return lineExit;
     }
@@ -360,9 +367,222 @@ public class MummyMazeState extends State implements Cloneable {
         return columnExit;
     }
 
-    private void killHero(boolean condition){
+    private void moveVertical(int positions) {
+
+        //if next hero move is to something != tile
+        switch (matrix[lineHero+positions][columnHero]){
+            case TRAP_CHAR -> {
+                killHero(true, TILE_CHAR);
+                return;
+            }
+            case KEY_CHAR -> {
+                HandleDoor();
+                tempLineKey = lineKey;
+                tempColumnKey = columnKey;
+            }
+        }
+
+        if(lineHero == tempLineKey && columnHero == tempColumnKey)
+            matrix[lineHero][columnHero] = KEY_CHAR;
+        else
+            matrix[lineHero][columnHero] = TILE_CHAR;
+
+
+
+        lineHero = lineHero + positions;
+        matrix[lineHero][columnHero] = HERO_CHAR;
+    }
+
+    private void moveHorizontal(int positions) {
+
+        //if next hero move is to something != tile
+        switch (matrix[lineHero][columnHero+positions]){
+            case TRAP_CHAR -> {
+                killHero(true, TILE_CHAR);
+                return;
+            }
+            case KEY_CHAR -> {
+                HandleDoor();
+                tempLineKey = lineKey;
+                tempColumnKey = columnKey;
+            }
+        }
+
+        //put the key again on the board
+        if(lineHero == tempLineKey && columnHero == tempColumnKey) {
+            matrix[lineHero][columnHero] = KEY_CHAR;
+
+            //reset temp
+            tempLineKey = -1;
+            tempColumnKey = -1;
+        }
+        else
+            matrix[lineHero][columnHero] = TILE_CHAR;
+
+        columnHero = columnHero + positions;
+        matrix[lineHero][columnHero] = HERO_CHAR;
+    }
+
+    private void moveWhiteMummy(){
+        if(HeroIsDead())
+            return;
+
+        if (moveWhiteMummyLeft())
+            return;
+
+        if (moveWhiteMummyRight())
+            return;
+
+        if (moveWhiteMummyUp())
+            return;
+
+        moveWhiteMummyDown();
+
+    }
+
+    private boolean moveWhiteMummyUp(){
+//        if(lineWhiteMummy > lineHero && matrix[lineWhiteMummy - 1][columnWhiteMummy] != WALL_HORIZONTAL_CHAR){
+//            killHero(matrix[lineWhiteMummy - 2][columnWhiteMummy] == HERO_CHAR,WHITE_MUMMY_CHAR);
+//
+//            matrix[lineWhiteMummy][columnWhiteMummy] = TILE_CHAR;
+//
+//            lineWhiteMummy = lineWhiteMummy - 2;
+//            matrix[lineWhiteMummy][columnWhiteMummy] = WHITE_MUMMY_CHAR;
+//            return true;
+//        }
+//        return false;
+
+        int previousLine = lineWhiteMummy;
+        lineWhiteMummy = moveEnemiesUp(WHITE_MUMMY_CHAR, lineWhiteMummy, columnWhiteMummy);
+        return lineWhiteMummy < previousLine;
+    }
+    private boolean moveWhiteMummyDown(){
+//        if(lineWhiteMummy < lineHero && matrix[lineWhiteMummy + 1][columnWhiteMummy] != WALL_HORIZONTAL_CHAR){
+//            killHero(matrix[lineWhiteMummy + 2][columnWhiteMummy] == HERO_CHAR,WHITE_MUMMY_CHAR);
+//
+//            matrix[lineWhiteMummy][columnWhiteMummy] = TILE_CHAR;
+//
+//            lineWhiteMummy = lineWhiteMummy + 2;
+//            matrix[lineWhiteMummy][columnWhiteMummy] = WHITE_MUMMY_CHAR;
+//            return true;
+//        }
+//        return false;
+
+        int previousLine = lineWhiteMummy;
+        lineWhiteMummy = moveEnemiesDown(WHITE_MUMMY_CHAR, lineWhiteMummy, columnWhiteMummy);
+        return lineWhiteMummy > previousLine;
+    }
+    private boolean moveWhiteMummyLeft(){
+//        if(columnWhiteMummy > columnHero && matrix[lineWhiteMummy][columnWhiteMummy - 1] != WALL_VERTICAL_CHAR){
+//
+//            killHero(matrix[lineWhiteMummy][columnWhiteMummy - 2] == HERO_CHAR,WHITE_MUMMY_CHAR);
+//
+//            matrix[lineWhiteMummy][columnWhiteMummy] = TILE_CHAR;
+//
+//            columnWhiteMummy = columnWhiteMummy - 2;
+//            matrix[lineWhiteMummy][columnWhiteMummy] = WHITE_MUMMY_CHAR;
+//            return true;
+//        }
+//        return false;
+        int previousColumn = columnWhiteMummy;
+        columnWhiteMummy = moveEnemiesLeft(WHITE_MUMMY_CHAR, lineWhiteMummy, columnWhiteMummy);
+        return columnWhiteMummy < previousColumn;
+    }
+    private boolean moveWhiteMummyRight(){
+//        if(columnWhiteMummy < columnHero && matrix[lineWhiteMummy][columnWhiteMummy + 1] != WALL_VERTICAL_CHAR){
+//
+//            killHero(matrix[lineWhiteMummy][columnWhiteMummy + 2] == HERO_CHAR,WHITE_MUMMY_CHAR);
+//
+//            matrix[lineWhiteMummy][columnWhiteMummy] = TILE_CHAR;
+//
+//            columnWhiteMummy = columnWhiteMummy + 2;
+//            matrix[lineWhiteMummy][columnWhiteMummy] = WHITE_MUMMY_CHAR;
+//
+//            return true;
+//        }
+//        return false;
+
+        int previousColumn = columnWhiteMummy;
+        columnWhiteMummy = moveEnemiesRight(WHITE_MUMMY_CHAR, lineWhiteMummy, columnWhiteMummy);
+        return columnWhiteMummy > previousColumn;
+    }
+
+    private int moveEnemiesUp(char enemy, int line, int column){
+        int targetLine = line - 2;
+        int obstacleLine = line - 1;
+
+        if(line > lineHero
+                && matrix[obstacleLine][column] != WALL_HORIZONTAL_CHAR
+                && matrix[obstacleLine][column] != HORIZONTAL_DOOR_CLOSED_CHAR
+        ){
+            killHero(matrix[targetLine][column] == HERO_CHAR,enemy);
+
+            matrix[line][column] = TILE_CHAR;
+            matrix[targetLine][column] = enemy;
+            return targetLine;
+        }
+        return line;
+    }
+
+    private int moveEnemiesDown(char enemy, int line, int column){
+        int targetLine = line + 2;
+        int obstacleLine = line + 1;
+
+        if(line < lineHero
+                && matrix[obstacleLine][column] != WALL_HORIZONTAL_CHAR
+                && matrix[obstacleLine][column] != HORIZONTAL_DOOR_CLOSED_CHAR
+        ){
+            killHero(matrix[targetLine][column] == HERO_CHAR,enemy);
+
+            matrix[line][column] = TILE_CHAR;
+            matrix[targetLine][column] = enemy;
+            return targetLine;
+        }
+        return line;
+    }
+
+    private int moveEnemiesLeft(char enemy, int line, int column){
+        int targetColumn = column - 2;
+        int obstacleColumn = column - 1;
+
+        if(column > columnHero
+                && matrix[line][obstacleColumn] != WALL_VERTICAL_CHAR
+                && matrix[line][obstacleColumn] != VERTICAL_DOOR_CLOSED_CHAR
+        ){
+
+            killHero(matrix[line][targetColumn] == HERO_CHAR,enemy);
+
+            matrix[line][column] = TILE_CHAR;
+            matrix[line][targetColumn] = enemy;
+
+            return targetColumn;
+        }
+        return column;
+    }
+
+    private int moveEnemiesRight(char enemy, int line, int column){
+        int targetColumn = column + 2;
+        int obstacleColumn = column + 1;
+
+        if(column < columnHero
+                && matrix[line][obstacleColumn] != WALL_VERTICAL_CHAR
+                && matrix[line][obstacleColumn] != VERTICAL_DOOR_CLOSED_CHAR
+        ){
+
+            killHero(matrix[line][targetColumn] == HERO_CHAR,enemy);
+
+            matrix[line][column] = TILE_CHAR;
+            matrix[line][targetColumn] = enemy;
+
+            return targetColumn;
+        }
+        return column;
+    }
+
+    private void killHero(boolean condition, char replace){
         if(condition)
         {
+            matrix[lineHero][columnHero] = replace;
             lineHero = -1;
             columnHero = -1;
         }
@@ -371,5 +591,31 @@ public class MummyMazeState extends State implements Cloneable {
     //if a mais?
     private boolean HeroIsDead(){
         return lineHero == -1 || columnHero == -1;
+    }
+
+    private void HandleDoor() {
+        if (lineDoor > 0 && columnDoor > 0) {
+            if(doorIsVertical)
+                matrix[lineDoor][columnDoor] = doorIsOpen ? VERTICAL_DOOR_CLOSED_CHAR : VERTICAL_DOOR_OPEN_CHAR;
+            else
+                matrix[lineDoor][columnDoor] = doorIsOpen ? HORIZONTAL_DOOR_CLOSED_CHAR : HORIZONTAL_DOOR_OPEN_CHAR;
+        }
+    }
+
+
+    private void moveRedMummy(){
+        if(HeroIsDead())
+            return;
+
+        if (moveWhiteMummyUp())
+            return;
+
+        if (moveWhiteMummyDown())
+            return;
+
+        if (moveWhiteMummyLeft())
+            return;
+
+        moveWhiteMummyRight();
     }
 }

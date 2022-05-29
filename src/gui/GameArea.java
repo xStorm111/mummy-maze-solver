@@ -13,7 +13,7 @@ import java.awt.Toolkit;
 
 import javax.swing.JPanel;
 
-import static gui.Properties.MATRIX_LINE_COLUMN_SIZE;
+import static gui.Properties.*;
 
 public class GameArea extends JPanel implements MummyMazeListener {
 	
@@ -84,31 +84,31 @@ public class GameArea extends JPanel implements MummyMazeListener {
 			for(int j = 0; j < MATRIX_LINE_COLUMN_SIZE; j++) {
 				switch(matrix[i][j]) {
 					//WALL
-					case '-' : g.drawImage(wallHorizontal,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
+					case WALL_HORIZONTAL_CHAR: g.drawImage(wallHorizontal,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
 					//HORIZONTAL DOOR CLOSED
-					case '=' : g.drawImage(doorHorizontalClosed,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
+					case HORIZONTAL_DOOR_CLOSED_CHAR:g.drawImage(doorHorizontalClosed,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
 					//HORIZONTAL DOOR OPEN
-					case '_' : g.drawImage(doorHorizontalOpen,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
+					case HORIZONTAL_DOOR_OPEN_CHAR: g.drawImage(doorHorizontalOpen,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
 					//WALL
-					case '|' : g.drawImage(wallVertical,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
+					case WALL_VERTICAL_CHAR: g.drawImage(wallVertical,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
 					//VERTICAL DOOR CLOSED
-					case '"' : g.drawImage(doorVerticalClosed,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
+					case VERTICAL_DOOR_CLOSED_CHAR: g.drawImage(doorVerticalClosed,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
 					//VERTICAL DOOR OPEN
-					case ')' : g.drawImage(doorVerticalOpen,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
+					case VERTICAL_DOOR_OPEN_CHAR: g.drawImage(doorVerticalOpen,xStart + j/2 * 60,yStart + i/2 * 60 - 6,this); break;
 					//WHITE MUMMY
-					case 'M' : g.drawImage(mummyWhite,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
+					case WHITE_MUMMY_CHAR: g.drawImage(mummyWhite,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
 					//HERO
-					case 'H' : g.drawImage(hero,j == 0 ? xStart + (j-2)/2 * 60 : xStart + j/2 * 60, i ==0 ? yStart + (i-2)/2 * 60 -6 : yStart + i/2 * 60,this); break;
+					case HERO_CHAR: g.drawImage(hero,j == 0 ? xStart + (j-2)/2 * 60 : xStart + j/2 * 60, i ==0 ? yStart + (i-2)/2 * 60 -6 : yStart + i/2 * 60,this); break;
 					//RED MUMMY
-					case 'V' : g.drawImage(mummyRed,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
+					case RED_MUMMY_CHAR: g.drawImage(mummyRed,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
 					//TRAP
-					case 'A' : g.drawImage(trap,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
+					case TRAP_CHAR: g.drawImage(trap,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
 					//SCORPION
-					case 'E' : g.drawImage(scorpion,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
+					case SCORPION_CHAR: g.drawImage(scorpion,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
 					//KEY
-					case 'C' : g.drawImage(key,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
+					case KEY_CHAR: g.drawImage(key,xStart + j/2 * 60,yStart + i/2 * 60,this); break;
 					//EXIT
-					case 'S' : g.drawImage(i == 0 ? stairsUp : i == 12 ? stairsDown : j == 0 ? stairsLeft : stairsRight,j == 0 ? xStart + (j-2)/2 * 60 : xStart + j/2 * 60, i ==0 ? yStart + (i-2)/2 * 60 -6 : yStart + i/2 * 60,this); break;
+					case EXIT_CHAR: g.drawImage(i == 0 ? stairsUp : i == 12 ? stairsDown : j == 0 ? stairsLeft : stairsRight,j == 0 ? xStart + (j-2)/2 * 60 : xStart + j/2 * 60, i ==0 ? yStart + (i-2)/2 * 60 -6 : yStart + i/2 * 60,this); break;
 				}
 			}
 		}
