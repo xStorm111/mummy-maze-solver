@@ -32,7 +32,7 @@ import searchmethods.SearchMethod;
 
 public class MainFrame extends JFrame {
     private char[][] initialMatrix = {{1, 0, 2}, {1, 0, 2}, {1, 0, 2}};
-    private MummyMazeAgent agent = new MummyMazeAgent(new MummyMazeState(initialMatrix));
+    private MummyMazeAgent agent = new MummyMazeAgent(new MummyMazeState(initialMatrix, 0,0,0,0,0,0));
     private JComboBox comboBoxSearchMethods;
     private JComboBox comboBoxHeuristics;
     private JLabel labelSearchParameter = new JLabel("limit/beam size:");

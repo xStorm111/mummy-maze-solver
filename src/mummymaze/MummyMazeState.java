@@ -5,6 +5,8 @@ import agent.State;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 import static gui.Properties.*;
 
@@ -15,46 +17,30 @@ public class MummyMazeState extends State implements Cloneable {
     private int lineHero;
     private int columnHero;
 
-    private int lineWhiteMummy;
-    private int columnWhiteMummy;
+    public LinkedList<MummyMazeWhiteMummy> whiteMummies = new LinkedList<>();
+    public LinkedList<MummyMazeRedMummy> redMummies = new LinkedList<>();
+    public LinkedList<MummyMazeScorpion> scorpions = new LinkedList<>();
+    public LinkedList<MummyMazeDoor> doors = new LinkedList<>();
 
-//    private int lineWhiteMummy2;
-//    private int columnWhiteMummy2;
+    private final int lineTrap;
+    private final int columnTrap;
 
-    private int lineRedMummy;
-    private int columnRedMummy;
+    private final int lineKey;
+    private final int columnKey;
 
-//    private int lineRedMummy2;
-//    private int columnRedMummy2;
-
-    private int lineScorpion;
-    private int columnScorpion;
-
-    private int lineTrap;
-    private int columnTrap;
-
-    //used when something is in trap position
-    private int tempLineTrap;
-    private int tempColumnTrap;
-
-    private int lineKey;
-    private int columnKey;
-
-    //used when something is in key position
-    private int tempLineKey;
-    private int tempColumnKey;
-
-    private int lineDoor;
-    private int columnDoor;
-    private boolean doorIsVertical;
-    private boolean doorIsOpen;
-
-    private int lineExit;
-    private int columnExit;
+    private final int lineExit;
+    private final int columnExit;
 
 
-    public MummyMazeState(char[][] matrix) {
+    public MummyMazeState(char[][] matrix, int lineTrap,int  columnTrap, int lineKey,int columnKey, int lineExit, int columnExit) {
         this.matrix = new char[matrix.length][matrix.length];
+
+        this.lineTrap = lineTrap;
+        this.columnTrap = columnTrap;
+        this.lineKey = lineKey;
+        this.columnKey = columnKey;
+        this.lineExit = lineExit;
+        this.columnExit = columnExit;
 
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix.length; j++) {
@@ -65,54 +51,29 @@ public class MummyMazeState extends State implements Cloneable {
                         lineHero = i;
                         columnHero = j;
                     }
-                    case EXIT_CHAR -> {
-                        lineExit = i;
-                        columnExit = j;
-                    }
+
                     case WHITE_MUMMY_CHAR -> {
-                        lineWhiteMummy = i;
-                        columnWhiteMummy = j;
+                        whiteMummies.add(new MummyMazeWhiteMummy(i,j,this.matrix[i][j]));
                     }
                     case RED_MUMMY_CHAR -> {
-                        lineRedMummy = i;
-                        columnRedMummy = j;
+                        redMummies.add(new MummyMazeRedMummy(i,j,this.matrix[i][j]));
                     }
                     case SCORPION_CHAR -> {
-                        lineScorpion = i;
-                        columnScorpion = j;
+                        scorpions.add(new MummyMazeScorpion(i,j,this.matrix[i][j]));
                     }
-                    case TRAP_CHAR -> {
-                        lineTrap = i;
-                        columnTrap = j;
-                    }
-                    case KEY_CHAR -> {
-                        lineKey = i;
-                        columnKey = j;
-                    }
+
                     case HORIZONTAL_DOOR_CLOSED_CHAR -> {
-                        lineDoor = i;
-                        columnDoor = j;
-                        doorIsVertical = false;
-                        doorIsOpen = false;
+                        doors.add(new MummyMazeDoor(i, j, false, false));
                     }
                     case HORIZONTAL_DOOR_OPEN_CHAR -> {
-                        lineDoor = i;
-                        columnDoor = j;
-                        doorIsVertical = false;
-                        doorIsOpen = true;
+                        doors.add(new MummyMazeDoor(i, j, true, false));
                     }
 
                     case VERTICAL_DOOR_CLOSED_CHAR -> {
-                        lineDoor = i;
-                        columnDoor = j;
-                        doorIsVertical = true;
-                        doorIsOpen = false;
+                        doors.add(new MummyMazeDoor(i, j, false, true));
                     }
                     case VERTICAL_DOOR_OPEN_CHAR -> {
-                        lineDoor = i;
-                        columnDoor = j;
-                        doorIsVertical = true;
-                        doorIsOpen = true;
+                        doors.add(new MummyMazeDoor(i, j, true, true));
                     }
                 }
             }
@@ -224,27 +185,6 @@ public class MummyMazeState extends State implements Cloneable {
         moveEnemies();
     }
 
-    private void moveEnemies(){
-        if(columnWhiteMummy > 0 && lineWhiteMummy > 0)
-        {
-            moveWhiteMummy();
-            moveWhiteMummy();
-        }
-
-        if(columnRedMummy > 0 && lineRedMummy > 0)
-        {
-            moveRedMummy();
-            moveRedMummy();
-        }
-
-        if(columnScorpion > 0 && lineScorpion > 0)
-        {
-            moveScorpion();
-        }
-    }
-
-
-
     //no need for finalState, we can already compare with door
     public double computeTilesOutOfPlace() {
         double h = 0;
@@ -325,7 +265,7 @@ public class MummyMazeState extends State implements Cloneable {
 
     @Override
     public MummyMazeState clone() {
-        return new MummyMazeState(matrix);
+        return new MummyMazeState(matrix, lineTrap, columnTrap, lineKey, columnKey, lineExit, columnExit);
     }
 
     //Listeners
@@ -366,7 +306,7 @@ public class MummyMazeState extends State implements Cloneable {
                 return;
             }
             case KEY_CHAR -> {
-                HandleDoor();
+                HandleDoors();
             }
         }
 
@@ -386,7 +326,7 @@ public class MummyMazeState extends State implements Cloneable {
                 return;
             }
             case KEY_CHAR -> {
-                HandleDoor();
+                HandleDoors();
             }
         }
 
@@ -397,335 +337,229 @@ public class MummyMazeState extends State implements Cloneable {
         matrix[lineHero][columnHero] = HERO_CHAR;
     }
 
-    private void moveWhiteMummy(){
+    private void moveEnemies(){
+        for (MummyMazeWhiteMummy whiteMummy: whiteMummies) {
+            moveWhiteMummy(whiteMummy);
+            moveWhiteMummy(whiteMummy);
+        }
+        for (MummyMazeRedMummy redMummy: redMummies) {
+            moveRedMummy(redMummy);
+            moveRedMummy(redMummy);
+        }
+        for (MummyMazeScorpion scorpion : scorpions) {
+            moveWhiteMummy(scorpion);
+        }
+    }
+
+    private void moveWhiteMummy(MummyMazeEnemy enemy){
         if(HeroIsDead())
             return;
 
-        if (moveWhiteMummyLeft())
+        if (enemyMovedLeft(enemy))
             return;
 
-        if (moveWhiteMummyRight())
+        if (enemyMovedRight(enemy))
             return;
 
-        if (moveWhiteMummyUp())
+        if (enemyMovedUp(enemy))
             return;
 
-        moveWhiteMummyDown();
-
+        enemyMovedDown(enemy);
     }
 
-    private void moveRedMummy(){
+    private void moveRedMummy(MummyMazeEnemy enemy){
         if(HeroIsDead())
             return;
 
-        if (moveRedMummyUp())
+        if (enemyMovedUp(enemy))
             return;
 
-        if (moveRedMummyDown())
+        if (enemyMovedDown(enemy))
             return;
 
-        if (moveRedMummyLeft())
+        if (enemyMovedLeft(enemy))
             return;
 
-        moveRedMummyRight();
+        enemyMovedRight(enemy);
     }
 
-    private void moveScorpion(){
-        if(HeroIsDead())
-            return;
+    private boolean enemyMovedUp(MummyMazeEnemy enemy){
+        int previousLine = enemy.line;
+        enemy.line = moveEnemiesVertical(enemy, false);
 
-        if (moveScorpionLeft())
-            return;
+        return enemy.line == -1 || enemy.line < previousLine;
+    }
+    private boolean enemyMovedDown(MummyMazeEnemy enemy){
+        int previousLine = enemy.line;
+        enemy.line = moveEnemiesVertical(enemy, true);
 
-        if (moveScorpionRight())
-            return;
-
-        if (moveScorpionUp())
-            return;
-
-        moveScorpionDown();
-
+        return enemy.line == -1 || enemy.line > previousLine;
     }
 
-    private boolean moveWhiteMummyUp(){
-        int previousLine = lineWhiteMummy;
-        lineWhiteMummy = moveEnemiesUp(WHITE_MUMMY_CHAR, lineWhiteMummy, columnWhiteMummy);
+    private boolean enemyMovedLeft(MummyMazeEnemy enemy){
+        int previousColumn = enemy.column;
+        enemy.column = moveEnemiesHorizontal(enemy, false);
 
-        return lineWhiteMummy < previousLine;
-    }
-    private boolean moveWhiteMummyDown(){
-        int previousLine = lineWhiteMummy;
-        lineWhiteMummy = moveEnemiesDown(WHITE_MUMMY_CHAR, lineWhiteMummy, columnWhiteMummy);
-
-        return lineWhiteMummy > previousLine;
+        return enemy.column == -1 || enemy.column < previousColumn;
 
     }
-    private boolean moveWhiteMummyLeft(){
-        int previousColumn = columnWhiteMummy;
-        columnWhiteMummy = moveEnemiesLeft(WHITE_MUMMY_CHAR, lineWhiteMummy, columnWhiteMummy);
+    private boolean enemyMovedRight(MummyMazeEnemy enemy){
+        int previousColumn = enemy.column;
+        enemy.column = moveEnemiesHorizontal(enemy, true);
 
-        return columnWhiteMummy < previousColumn;
-
-    }
-    private boolean moveWhiteMummyRight(){
-        int previousColumn = columnWhiteMummy;
-        columnWhiteMummy = moveEnemiesRight(WHITE_MUMMY_CHAR, lineWhiteMummy, columnWhiteMummy);
-
-        return columnWhiteMummy > previousColumn;
+        return enemy.column == -1 || enemy.column > previousColumn;
     }
 
-    private boolean moveRedMummyUp(){
-        int previousLine = lineRedMummy;
-        lineRedMummy = moveEnemiesUp(RED_MUMMY_CHAR, lineRedMummy, columnRedMummy);
+    private int moveEnemiesVertical(MummyMazeEnemy enemy, boolean movePositive){
+        int targetLine;
+        int obstacleLine;
 
-        return lineRedMummy < previousLine;
-    }
-    private boolean moveRedMummyDown(){
-        int previousLine = lineRedMummy;
-        lineRedMummy = moveEnemiesDown(RED_MUMMY_CHAR, lineRedMummy, columnRedMummy);
+        boolean heroInThisDirection;
 
-        return lineRedMummy > previousLine;
+        //down
+        if(movePositive){
+            if(enemy.line == 11)
+                return enemy.line;
 
-    }
-    private boolean moveRedMummyLeft(){
-        int previousColumn = columnRedMummy;
-        columnRedMummy = moveEnemiesLeft(RED_MUMMY_CHAR, lineRedMummy, columnRedMummy);
-
-        return columnRedMummy < previousColumn;
-
-    }
-    private boolean moveRedMummyRight(){
-        int previousColumn = columnRedMummy;
-        columnRedMummy = moveEnemiesRight(RED_MUMMY_CHAR, lineRedMummy, columnRedMummy);
-
-        return columnRedMummy > previousColumn;
-    }
-
-    private boolean moveScorpionUp(){
-        int previousLine = lineScorpion;
-        lineScorpion = moveEnemiesUp(SCORPION_CHAR, lineScorpion, columnScorpion);
-
-        return lineScorpion < previousLine;
-    }
-    private boolean moveScorpionDown(){
-        int previousLine = lineScorpion;
-        lineScorpion = moveEnemiesDown(SCORPION_CHAR, lineScorpion, columnScorpion);
-
-        return lineScorpion > previousLine;
-
-    }
-    private boolean moveScorpionLeft(){
-        int previousColumn = columnScorpion;
-        columnScorpion = moveEnemiesLeft(SCORPION_CHAR, lineScorpion, columnScorpion);
-
-        return columnScorpion < previousColumn;
-
-    }
-    private boolean moveScorpionRight(){
-        int previousColumn = columnScorpion;
-        columnScorpion = moveEnemiesRight(SCORPION_CHAR, lineScorpion, columnScorpion);
-
-        return columnScorpion > previousColumn;
-    }
-
-    private int moveEnemiesUp(char enemy, int line, int column){
-        //can't go more up
-        if(line == 1)
-            return  line;
-
-        int targetLine = line - 2;
-        int obstacleLine = line - 1;
-
-        if(line > lineHero
-                && matrix[obstacleLine][column] != WALL_HORIZONTAL_CHAR
-                && matrix[obstacleLine][column] != HORIZONTAL_DOOR_CLOSED_CHAR
-        ){
-            if(enemy == SCORPION_CHAR)
-            {
-                if(matrix[targetLine][column] == WHITE_MUMMY_CHAR || matrix[targetLine][column] == RED_MUMMY_CHAR)
-                    return column;
-                //enemy will validate if the target position is 1 possible killing situation
-                scorpionFoundSomethingOnTargetPosition(matrix[targetLine][column]);
-            }
-
-            else{
-                mummyFoundSomethingOnTargetPosition(matrix[targetLine][column]);
-            }
-
-            resetTile(line, column);
-
-            matrix[targetLine][column] = enemy;
-
-            return targetLine;
+            targetLine = enemy.line + 2;
+            obstacleLine = enemy.line + 1;
+            heroInThisDirection = enemy.line < lineHero;
         }
-        return line;
-    }
+        //up
+        else{
+            if(enemy.line == 1)
+                return enemy.line;
 
-    private int moveEnemiesDown(char enemy, int line, int column){
-        //can't go more down
-        if(line == 11)
-            return  line;
-
-        int targetLine = line + 2;
-        int obstacleLine = line + 1;
-
-        if(line < lineHero
-                && matrix[obstacleLine][column] != WALL_HORIZONTAL_CHAR
-                && matrix[obstacleLine][column] != HORIZONTAL_DOOR_CLOSED_CHAR
-        ){
-            if(enemy == SCORPION_CHAR)
-            {
-                if(matrix[targetLine][column] == WHITE_MUMMY_CHAR || matrix[targetLine][column] == RED_MUMMY_CHAR)
-                    return column;
-                //enemy will validate if the target position is 1 possible killing situation
-                scorpionFoundSomethingOnTargetPosition(matrix[targetLine][column]);
-            }
-
-            else{
-                mummyFoundSomethingOnTargetPosition(matrix[targetLine][column]);
-            }
-
-            resetTile(line, column);
-
-            matrix[targetLine][column] = enemy;
-
-            return targetLine;
+            targetLine = enemy.line - 2;
+            obstacleLine = enemy.line - 1;
+            heroInThisDirection = enemy.line > lineHero;
         }
-        return line;
-    }
 
-    private int moveEnemiesLeft(char enemy, int line, int column){
-
-        //can't go more left
-        if(column == 1)
-            return  column;
-
-        int targetColumn = column - 2;
-        int obstacleColumn = column - 1;
-
-        if(column > columnHero
-                && matrix[line][obstacleColumn] != WALL_VERTICAL_CHAR
-                && matrix[line][obstacleColumn] != VERTICAL_DOOR_CLOSED_CHAR
-        ){
-
-            if(enemy == SCORPION_CHAR)
-            {
-                if(matrix[line][targetColumn] == WHITE_MUMMY_CHAR || matrix[line][targetColumn] == RED_MUMMY_CHAR)
-                    return column;
-                //enemy will validate if the target position is 1 possible killing situation
-                scorpionFoundSomethingOnTargetPosition(matrix[line][targetColumn]);
-            }
-
-            else{
-                mummyFoundSomethingOnTargetPosition(matrix[line][targetColumn]);
-            }
-
-            resetTile(line, column);
-
-            matrix[line][targetColumn] = enemy;
-
-            return targetColumn;
+        if (!heroInThisDirection
+                || matrix[obstacleLine][enemy.column] == WALL_HORIZONTAL_CHAR
+                || matrix[obstacleLine][enemy.column] == HORIZONTAL_DOOR_CLOSED_CHAR
+        ) {
+            return enemy.line;
         }
-        return column;
-    }
 
-    private int moveEnemiesRight(char enemy, int line, int column){
-
-        //can't go more right
-        if(column == 11)
-            return  column;
-
-        int targetColumn = column + 2;
-        int obstacleColumn = column + 1;
-
-        if(column < columnHero
-                && matrix[line][obstacleColumn] != WALL_VERTICAL_CHAR
-                && matrix[line][obstacleColumn] != VERTICAL_DOOR_CLOSED_CHAR
-        ){
-            if(enemy == SCORPION_CHAR)
+        if(enemy.character == SCORPION_CHAR)
+        {
+            if(matrix[targetLine][enemy.column] == WHITE_MUMMY_CHAR || matrix[targetLine][enemy.column] == RED_MUMMY_CHAR)
             {
-                if(matrix[line][targetColumn] == WHITE_MUMMY_CHAR || matrix[line][targetColumn] == RED_MUMMY_CHAR)
-                    return column;
-                //enemy will validate if the target position is 1 possible killing situation
-                scorpionFoundSomethingOnTargetPosition(matrix[line][targetColumn]);
+                //found a mummy, so he died
+                resetTile(enemy.line, enemy.column);
+                killScorpion(enemy.line, enemy.column);
+                return enemy.line;
             }
-
             else{
-                mummyFoundSomethingOnTargetPosition(matrix[line][targetColumn]);
+                //enemy will validate if the target position is 1 possible killing situation
+                scorpionFoundSomethingOnTargetPosition(targetLine, enemy.column);
             }
-
-            resetTile(line, column);
-
-            matrix[line][targetColumn] = enemy;
-
-            return targetColumn;
         }
-        return column;
+        else{
+            mummyFoundSomethingOnTargetPosition(targetLine, enemy.column);
+        }
+
+
+        matrix[targetLine][enemy.column] = enemy.character;
+        resetTile(enemy.line, enemy.column);
+
+        return targetLine;
+    }
+
+    private int moveEnemiesHorizontal(MummyMazeEnemy enemy, boolean positive){
+
+        int targetColumn;
+        int obstacleColumn;
+        boolean heroInThisDirection;
+
+        //right
+        if(positive){
+            if(enemy.column == 11)
+                return enemy.column;
+
+            targetColumn = enemy.column + 2;
+            obstacleColumn = enemy.column + 1;
+
+            heroInThisDirection = enemy.column < columnHero;
+        }
+        //left
+        else{
+            if(enemy.column == 1)
+                return enemy.column;
+
+            targetColumn = enemy.column - 2;
+            obstacleColumn = enemy.column - 1;
+
+            heroInThisDirection = enemy.column > columnHero;
+        }
+
+        if (!heroInThisDirection
+                || matrix[enemy.line][obstacleColumn] == WALL_VERTICAL_CHAR
+                || matrix[enemy.line][obstacleColumn] == VERTICAL_DOOR_CLOSED_CHAR
+        ) {
+            return enemy.column;
+        }
+
+        if(enemy.character == SCORPION_CHAR)
+        {
+            if(matrix[enemy.line][targetColumn] == WHITE_MUMMY_CHAR || matrix[enemy.line][targetColumn] == RED_MUMMY_CHAR)
+            {
+                resetTile(enemy.line, enemy.column);
+                killScorpion(enemy.line, enemy.column);
+                return enemy.column;
+            }
+            else{
+                //enemy will validate if the target position is 1 possible killing situation
+                scorpionFoundSomethingOnTargetPosition(enemy.line, targetColumn);
+            }
+        }
+        else{
+            mummyFoundSomethingOnTargetPosition(enemy.line, targetColumn);
+        }
+
+        matrix[enemy.line][targetColumn] = enemy.character;
+        resetTile(enemy.line, enemy.column);
+
+        return targetColumn;
     }
 
 
-    private void mummyFoundSomethingOnTargetPosition(char position)
+
+
+    private void mummyFoundSomethingOnTargetPosition(int line, int column)
     {
         //let's look into the target position and apply the rules
-        switch (position){
+        switch (matrix[line][column]){
+            case HERO_CHAR -> {
+                killHero();
+            }
+            case WHITE_MUMMY_CHAR -> {
+                killWhiteMummy(line, column);
+            }
+            case RED_MUMMY_CHAR -> {
+                killRedMummy(line, column);
+            }
+            case SCORPION_CHAR -> {
+                killScorpion(line, column);
+            }
+            case KEY_CHAR -> { //regarding the key, only mummies can toggle the door
+                HandleDoors();
+            }
+        }
+    }
+
+    private void scorpionFoundSomethingOnTargetPosition(int line, int column)
+    {
+        //let's look into the target position and apply the rules
+        switch (matrix[line][column]){
             case HERO_CHAR -> {
                 killHero();
             }
             case SCORPION_CHAR -> {
-                killScorpion();
-            }
-            case TRAP_CHAR -> {
-                setTempTrap();
-            }
-            case WHITE_MUMMY_CHAR -> { //target position is white and enemy is red mummy then kill
-                killWhiteMummy();
-            }
-            case RED_MUMMY_CHAR -> { //target position is red and enemy is white mummy then kill
-                killRedMummy();
-            }
-            case KEY_CHAR -> { //regarding the key, only mummies can toggle the door
-                HandleDoor();
+                killScorpion(line, column);
             }
         }
-    }
-
-    private void scorpionFoundSomethingOnTargetPosition(char position)
-    {
-        //let's look into the target position and apply the rules
-        switch (position){
-            case HERO_CHAR -> {
-                killHero();
-            }
-            case SCORPION_CHAR -> {
-                killScorpion();
-            }
-            case TRAP_CHAR -> {
-                setTempTrap();
-            }
-            case KEY_CHAR -> { //regarding the key, only mummies can toggle the door
-                setTempKey();
-            }
-        }
-    }
-
-    private void killHero(){
-            lineHero = -1;
-            columnHero = -1;
-    }
-
-    private void killScorpion(){
-            lineScorpion = -1;
-            columnScorpion = -1;
-    }
-
-    private void killWhiteMummy(){
-            lineWhiteMummy = -1;
-            columnWhiteMummy = -1;
-    }
-
-    private void killRedMummy(){
-            lineRedMummy = -1;
-            columnRedMummy = -1;
     }
 
     //if a mais?
@@ -733,54 +567,74 @@ public class MummyMazeState extends State implements Cloneable {
         return lineHero == -1 || columnHero == -1;
     }
 
-    private void HandleDoor() {
-        if (lineDoor > 0 && columnDoor > 0) {
-            if(doorIsVertical)
-                matrix[lineDoor][columnDoor] = doorIsOpen ? VERTICAL_DOOR_CLOSED_CHAR : VERTICAL_DOOR_OPEN_CHAR;
+    private void HandleDoors() {
+        for (MummyMazeDoor door : doors) {
+            if (door.isVertical)
+                matrix[door.line][door.column] = door.isOpened ? VERTICAL_DOOR_CLOSED_CHAR : VERTICAL_DOOR_OPEN_CHAR;
             else
-                matrix[lineDoor][columnDoor] = doorIsOpen ? HORIZONTAL_DOOR_CLOSED_CHAR : HORIZONTAL_DOOR_OPEN_CHAR;
+                matrix[door.line][door.column] = door.isOpened ? HORIZONTAL_DOOR_CLOSED_CHAR : HORIZONTAL_DOOR_OPEN_CHAR;
 
-            doorIsOpen = !doorIsOpen;
+            door.isOpened = !door.isOpened;
         }
-
-        setTempKey();
     }
 
     private void resetTile(int line, int column){
-        if(line == tempLineKey && column == tempColumnKey) {
+        if(line == lineKey && column == columnKey) {
             matrix[line][column] = KEY_CHAR;
 
             //reset temp
-            resetTempKey();
+//            resetTempKey();
         }
-        else if (line == tempLineTrap && column == tempColumnTrap)
+        else if (line == lineTrap && column == columnTrap)
         {
             matrix[line][column] = TRAP_CHAR;
-
-            resetTempTrap();
+//
+//            resetTempTrap();
         }
         else{
             matrix[line][column] = TILE_CHAR;
         }
     }
 
-    private void setTempKey(){
-        tempLineKey = lineKey;
-        tempColumnKey = columnKey;
+    private void killHero(){
+        lineHero = -1;
+        columnHero = -1;
     }
 
-    private void resetTempKey(){
-        tempLineKey = -1;
-        tempColumnKey = -1;
+    private void killWhiteMummy(int line, int column){
+        for (Iterator<MummyMazeWhiteMummy> iterator = whiteMummies.iterator(); iterator.hasNext();) {
+            MummyMazeEnemy enemy = iterator.next();
+            if (enemy.line == line && enemy.column == column) {
+                enemy.line = -1;
+                enemy.column = -1;
+//                iterator.remove();
+                return;
+            }
+        }
     }
 
-    private void setTempTrap(){
-        tempLineTrap = lineTrap;
-        tempColumnTrap = columnTrap;
+    private void killRedMummy(int line, int column){
+        for (Iterator<MummyMazeRedMummy> iterator = redMummies.iterator(); iterator.hasNext();) {
+            MummyMazeEnemy enemy = iterator.next();
+            if (enemy.line == line && enemy.column == column) {
+                enemy.line = -1;
+                enemy.column = -1;
+//                iterator.remove();
+                return;
+            }
+        }
     }
 
-    private void resetTempTrap(){
-        tempLineTrap = -1;
-        tempColumnTrap = -1;
+    private void killScorpion(int line, int column){
+
+        for (Iterator<MummyMazeScorpion> iterator = scorpions.iterator(); iterator.hasNext();) {
+            MummyMazeEnemy enemy = iterator.next();
+            if (enemy.line == line && enemy.column == column) {
+                enemy.line = -1;
+                enemy.column = -1;
+//                iterator.remove();
+                return;
+            }
+        }
     }
 }
