@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -45,6 +46,8 @@ public class MainFrame extends JFrame {
     private JButton buttonShowSolution = new JButton("Show solution");
     private JButton buttonReset = new JButton("Reset to initial state");
     private JTextArea textArea;
+
+    private String levelFilename;
 
     public MainFrame() {
         try {
@@ -110,7 +113,9 @@ public class MainFrame extends JFrame {
         JFileChooser fc = new JFileChooser(new java.io.File("."));
         try {
             if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                gameArea.setState(agent.readInitialStateFromFile(fc.getSelectedFile()));
+                File selectedFile = fc.getSelectedFile();
+                levelFilename = selectedFile.getName();
+                gameArea.setState(agent.readInitialStateFromFile(selectedFile));
                 buttonSolve.setEnabled(true);
                 buttonShowSolution.setEnabled(false);
                 buttonReset.setEnabled(false);
@@ -167,7 +172,11 @@ public class MainFrame extends JFrame {
             @Override
             public void done() {
                 if (!agent.hasBeenStopped()) {
-                    textArea.setText(agent.getSearchReport());
+                    try {
+                        textArea.setText(agent.getSearchReport(levelFilename));
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
                     if (agent.hasSolution()) {
                         buttonShowSolution.setEnabled(true);
                     }

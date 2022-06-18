@@ -1,7 +1,11 @@
 package agent;
 
-import java.util.ArrayList;
 import searchmethods.*;
+import utils.ExcelStatistics;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class Agent<E extends State> {
 
@@ -89,18 +93,29 @@ public class Agent<E extends State> {
         this.heuristic = heuristic;
     }
 
-    public String getSearchReport() {
+    public String getSearchReport(String levelFileName) throws IOException {
         StringBuilder sb = new StringBuilder();
         sb.append(searchMethod + "\n");
         if (solution == null) {
             sb.append("No solution found\n");
         } else {
-            sb.append("Solution cost: " + Double.toString(solution.getCost()) + "\n");
+            sb.append("Solution cost: " + solution.getCost() + "\n");
         }
         sb.append("Num of expanded nodes: " + searchMethod.getStatistics().numExpandedNodes + "\n");
         sb.append("Max frontier size: " + searchMethod.getStatistics().maxFrontierSize + "\n");
         sb.append("Num of generated states: " + searchMethod.getStatistics().numGeneratedSates + "\n");
 
+        if (!levelFileName.isEmpty()) {
+            ExcelStatistics excelStatistics = new ExcelStatistics(searchMethods,searchMethod,solution);
+
+            //write stats for the project directory
+            String dirPath = System.getProperty("user.dir") + File.separator + "stats" + File.separator;
+            String fileName = "mummymazeStats.xlsx";
+
+            sb.append("Statistics updated on:\n" + dirPath + fileName + "\n");
+
+            excelStatistics.generateExcelStatistics(levelFileName, dirPath, fileName);
+        }
         return sb.toString();
     }
 }
