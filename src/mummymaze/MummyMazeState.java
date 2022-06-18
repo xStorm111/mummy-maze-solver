@@ -2,6 +2,13 @@ package mummymaze;
 
 import agent.Action;
 import agent.State;
+import mummymaze.models.enemies.Enemy;
+import mummymaze.models.enemies.RedMummy;
+import mummymaze.models.enemies.Scorpion;
+import mummymaze.models.enemies.WhiteMummy;
+import mummymaze.models.items.Key;
+import mummymaze.models.items.Trap;
+import mummymaze.models.obstacles.Door;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,31 +24,26 @@ public class MummyMazeState extends State implements Cloneable {
     private int lineHero;
     private int columnHero;
 
-    public LinkedList<MummyMazeWhiteMummy> whiteMummies = new LinkedList<>();
-    public LinkedList<MummyMazeRedMummy> redMummies = new LinkedList<>();
-    public LinkedList<MummyMazeScorpion> scorpions = new LinkedList<>();
-    public LinkedList<MummyMazeDoor> doors = new LinkedList<>();
-
-    private final int lineTrap;
-    private final int columnTrap;
-
-    private final int lineKey;
-    private final int columnKey;
-
     private final int lineExit;
     private final int columnExit;
 
+    private final LinkedList<WhiteMummy> whiteMummies = new LinkedList<>();
+    private final LinkedList<RedMummy> redMummies = new LinkedList<>();
+    private final LinkedList<Scorpion> scorpions = new LinkedList<>();
+    private final LinkedList<Door> doors = new LinkedList<>();
+    private final Key key;
+    private final LinkedList<Trap> traps;
 
-    public MummyMazeState(char[][] matrix, int lineTrap,int  columnTrap, int lineKey,int columnKey, int lineExit, int columnExit) {
+    public MummyMazeState(char[][] matrix, LinkedList<Trap> traps, Key key, int lineExit, int columnExit) {
         this.matrix = new char[matrix.length][matrix.length];
 
-        this.lineTrap = lineTrap;
-        this.columnTrap = columnTrap;
-        this.lineKey = lineKey;
-        this.columnKey = columnKey;
+        //define static environment "objects"
+        this.traps = traps;
+        this.key = key;
         this.lineExit = lineExit;
         this.columnExit = columnExit;
 
+        //define dynamic environment "objects"
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix.length; j++) {
                 this.matrix[i][j] = matrix[i][j];
@@ -53,27 +55,27 @@ public class MummyMazeState extends State implements Cloneable {
                     }
 
                     case WHITE_MUMMY_CHAR -> {
-                        whiteMummies.add(new MummyMazeWhiteMummy(i,j,this.matrix[i][j]));
+                        whiteMummies.add(new WhiteMummy(i,j,this.matrix[i][j]));
                     }
                     case RED_MUMMY_CHAR -> {
-                        redMummies.add(new MummyMazeRedMummy(i,j,this.matrix[i][j]));
+                        redMummies.add(new RedMummy(i,j,this.matrix[i][j]));
                     }
                     case SCORPION_CHAR -> {
-                        scorpions.add(new MummyMazeScorpion(i,j,this.matrix[i][j]));
+                        scorpions.add(new Scorpion(i,j,this.matrix[i][j]));
                     }
 
                     case HORIZONTAL_DOOR_CLOSED_CHAR -> {
-                        doors.add(new MummyMazeDoor(i, j, false, false));
+                        doors.add(new Door(i, j, false, false));
                     }
                     case HORIZONTAL_DOOR_OPEN_CHAR -> {
-                        doors.add(new MummyMazeDoor(i, j, true, false));
+                        doors.add(new Door(i, j, true, false));
                     }
 
                     case VERTICAL_DOOR_CLOSED_CHAR -> {
-                        doors.add(new MummyMazeDoor(i, j, false, true));
+                        doors.add(new Door(i, j, false, true));
                     }
                     case VERTICAL_DOOR_OPEN_CHAR -> {
-                        doors.add(new MummyMazeDoor(i, j, true, true));
+                        doors.add(new Door(i, j, true, true));
                     }
                 }
             }
@@ -186,18 +188,46 @@ public class MummyMazeState extends State implements Cloneable {
     }
 
     //no need for finalState, we can already compare with door
-    public double computeTilesOutOfPlace() {
-        double h = 0;
+    public double computeEnemiesDistance() {
+        if (HeroIsDead()) {
+            return Double.MAX_VALUE;
+        }
 
-        return h;
+        double dist = 0;
+        LinkedList<Enemy> enemies = new LinkedList<>(whiteMummies);
+        enemies.addAll(redMummies);
+        enemies.addAll(scorpions);
+        for (Enemy enemy: enemies) {
+            if(enemy.column > 0 && enemy.line > 0)
+            {
+                //divide by 2 because we want to ignore walls positions
+                double enemyDistance = Math.abs(lineHero - enemy.line) / 2.0 + Math.abs(columnHero - enemy.column) / 2.0;
+
+                //more distance = less value
+                double enemyDistanceValue = 1 / (enemyDistance);
+                if(dist == 0){
+                    dist = enemyDistanceValue;
+                    continue;
+                }
+
+                if(enemyDistanceValue > dist)
+                    dist = enemyDistanceValue;
+            }
+        }
+
+        //heuristica - distancia do heroi às múmias
+        //quanto mais distante melhor, ou seja, devolve 1 valor menor
+        return dist;
     }
 
-    //not relevant for now, start with largura and profundidade que não precisam de heuristica
     //no need for finalState, we can already compare with door
     public double computeTileDistances() {
-        double h = 0;
+        if (HeroIsDead()) {
+            return Double.MAX_VALUE;
+        }
 
-        return h;
+        //divide by 2 because we want to ignore walls positions
+        return Math.abs(lineHero - lineExit) / 2.0 + Math.abs(columnHero - columnExit) / 2.0;
     }
 
     public char[][] getMatrix() {
@@ -265,7 +295,7 @@ public class MummyMazeState extends State implements Cloneable {
 
     @Override
     public MummyMazeState clone() {
-        return new MummyMazeState(matrix, lineTrap, columnTrap, lineKey, columnKey, lineExit, columnExit);
+        return new MummyMazeState(matrix, traps, key, lineExit, columnExit);
     }
 
     //Listeners
@@ -338,20 +368,20 @@ public class MummyMazeState extends State implements Cloneable {
     }
 
     private void moveEnemies(){
-        for (MummyMazeWhiteMummy whiteMummy: whiteMummies) {
+        for (WhiteMummy whiteMummy: whiteMummies) {
             moveWhiteMummy(whiteMummy);
             moveWhiteMummy(whiteMummy);
         }
-        for (MummyMazeRedMummy redMummy: redMummies) {
+        for (RedMummy redMummy: redMummies) {
             moveRedMummy(redMummy);
             moveRedMummy(redMummy);
         }
-        for (MummyMazeScorpion scorpion : scorpions) {
+        for (Scorpion scorpion : scorpions) {
             moveWhiteMummy(scorpion);
         }
     }
 
-    private void moveWhiteMummy(MummyMazeEnemy enemy){
+    private void moveWhiteMummy(Enemy enemy){
         if(HeroIsDead())
             return;
 
@@ -367,7 +397,7 @@ public class MummyMazeState extends State implements Cloneable {
         enemyMovedDown(enemy);
     }
 
-    private void moveRedMummy(MummyMazeEnemy enemy){
+    private void moveRedMummy(Enemy enemy){
         if(HeroIsDead())
             return;
 
@@ -383,34 +413,34 @@ public class MummyMazeState extends State implements Cloneable {
         enemyMovedRight(enemy);
     }
 
-    private boolean enemyMovedUp(MummyMazeEnemy enemy){
+    private boolean enemyMovedUp(Enemy enemy){
         int previousLine = enemy.line;
         enemy.line = moveEnemiesVertical(enemy, false);
 
         return enemy.line == -1 || enemy.line < previousLine;
     }
-    private boolean enemyMovedDown(MummyMazeEnemy enemy){
+    private boolean enemyMovedDown(Enemy enemy){
         int previousLine = enemy.line;
         enemy.line = moveEnemiesVertical(enemy, true);
 
         return enemy.line == -1 || enemy.line > previousLine;
     }
 
-    private boolean enemyMovedLeft(MummyMazeEnemy enemy){
+    private boolean enemyMovedLeft(Enemy enemy){
         int previousColumn = enemy.column;
         enemy.column = moveEnemiesHorizontal(enemy, false);
 
         return enemy.column == -1 || enemy.column < previousColumn;
 
     }
-    private boolean enemyMovedRight(MummyMazeEnemy enemy){
+    private boolean enemyMovedRight(Enemy enemy){
         int previousColumn = enemy.column;
         enemy.column = moveEnemiesHorizontal(enemy, true);
 
         return enemy.column == -1 || enemy.column > previousColumn;
     }
 
-    private int moveEnemiesVertical(MummyMazeEnemy enemy, boolean movePositive){
+    private int moveEnemiesVertical(Enemy enemy, boolean movePositive){
         int targetLine;
         int obstacleLine;
 
@@ -467,7 +497,7 @@ public class MummyMazeState extends State implements Cloneable {
         return targetLine;
     }
 
-    private int moveEnemiesHorizontal(MummyMazeEnemy enemy, boolean positive){
+    private int moveEnemiesHorizontal(Enemy enemy, boolean positive){
 
         int targetColumn;
         int obstacleColumn;
@@ -568,7 +598,7 @@ public class MummyMazeState extends State implements Cloneable {
     }
 
     private void HandleDoors() {
-        for (MummyMazeDoor door : doors) {
+        for (Door door : doors) {
             if (door.isVertical)
                 matrix[door.line][door.column] = door.isOpened ? VERTICAL_DOOR_CLOSED_CHAR : VERTICAL_DOOR_OPEN_CHAR;
             else
@@ -579,21 +609,17 @@ public class MummyMazeState extends State implements Cloneable {
     }
 
     private void resetTile(int line, int column){
-        if(line == lineKey && column == columnKey) {
+        for (Trap trap : traps) {
+            if (trap.equals(new Trap(line, column))) {
+                matrix[line][column] = TRAP_CHAR;
+                return;
+            }
+        }
+        if(line == key.line && column == key.column)
             matrix[line][column] = KEY_CHAR;
-
-            //reset temp
-//            resetTempKey();
-        }
-        else if (line == lineTrap && column == columnTrap)
-        {
-            matrix[line][column] = TRAP_CHAR;
-//
-//            resetTempTrap();
-        }
-        else{
+        else
             matrix[line][column] = TILE_CHAR;
-        }
+
     }
 
     private void killHero(){
@@ -602,24 +628,22 @@ public class MummyMazeState extends State implements Cloneable {
     }
 
     private void killWhiteMummy(int line, int column){
-        for (Iterator<MummyMazeWhiteMummy> iterator = whiteMummies.iterator(); iterator.hasNext();) {
-            MummyMazeEnemy enemy = iterator.next();
+        for (Iterator<WhiteMummy> iterator = whiteMummies.iterator(); iterator.hasNext();) {
+            Enemy enemy = iterator.next();
             if (enemy.line == line && enemy.column == column) {
                 enemy.line = -1;
                 enemy.column = -1;
-//                iterator.remove();
                 return;
             }
         }
     }
 
     private void killRedMummy(int line, int column){
-        for (Iterator<MummyMazeRedMummy> iterator = redMummies.iterator(); iterator.hasNext();) {
-            MummyMazeEnemy enemy = iterator.next();
+        for (Iterator<RedMummy> iterator = redMummies.iterator(); iterator.hasNext();) {
+            Enemy enemy = iterator.next();
             if (enemy.line == line && enemy.column == column) {
                 enemy.line = -1;
                 enemy.column = -1;
-//                iterator.remove();
                 return;
             }
         }
@@ -627,12 +651,11 @@ public class MummyMazeState extends State implements Cloneable {
 
     private void killScorpion(int line, int column){
 
-        for (Iterator<MummyMazeScorpion> iterator = scorpions.iterator(); iterator.hasNext();) {
-            MummyMazeEnemy enemy = iterator.next();
+        for (Iterator<Scorpion> iterator = scorpions.iterator(); iterator.hasNext();) {
+            Enemy enemy = iterator.next();
             if (enemy.line == line && enemy.column == column) {
                 enemy.line = -1;
                 enemy.column = -1;
-//                iterator.remove();
                 return;
             }
         }

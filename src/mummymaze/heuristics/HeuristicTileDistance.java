@@ -1,6 +1,8 @@
-package mummymaze;
+package mummymaze.heuristics;
 
 import agent.Heuristic;
+import mummymaze.MummyMazeProblem;
+import mummymaze.MummyMazeState;
 
 public class HeuristicTileDistance extends Heuristic<MummyMazeProblem, MummyMazeState>{
 

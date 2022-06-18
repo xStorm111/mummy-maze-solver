@@ -2,6 +2,7 @@ package mummymaze;
 
 import agent.Action;
 import agent.Problem;
+import mummymaze.actions.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -12,7 +13,7 @@ public class MummyMazeProblem extends Problem<MummyMazeState> {
 
     public MummyMazeProblem(MummyMazeState initialState) {
         super(initialState);
-        actions = new LinkedList<Action>() {{
+        actions = new LinkedList<>() {{
             add(new ActionDown());
             add(new ActionUp());
             add(new ActionRight());

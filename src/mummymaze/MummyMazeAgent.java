@@ -1,9 +1,14 @@
 package mummymaze;
 
 import agent.Agent;
+import mummymaze.heuristics.HeuristicTileDistance;
+import mummymaze.heuristics.HeuristicTilesOutOfPlace;
+import mummymaze.models.items.Key;
+import mummymaze.models.items.Trap;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.LinkedList;
 
 import static gui.Properties.*;
 
@@ -11,26 +16,25 @@ public class MummyMazeAgent extends Agent<MummyMazeState>{
     
     protected MummyMazeState initialEnvironment;
     
-    public MummyMazeAgent(MummyMazeState environemt) {
-        super(environemt);
-        initialEnvironment = (MummyMazeState) environemt.clone();
+    public MummyMazeAgent(MummyMazeState environment) {
+        super(environment);
+        initialEnvironment = environment.clone();
         heuristics.add(new HeuristicTileDistance());
         heuristics.add(new HeuristicTilesOutOfPlace());
         heuristic = heuristics.get(0);
     }
             
     public MummyMazeState resetEnvironment(){
-        environment = (MummyMazeState) initialEnvironment.clone();
+        environment = initialEnvironment.clone();
         return environment;
     }
                  
     public MummyMazeState readInitialStateFromFile(File file) throws IOException {
         java.util.Scanner scanner = new java.util.Scanner(file);
         char[][] matrix = new char [MATRIX_LINE_COLUMN_SIZE][MATRIX_LINE_COLUMN_SIZE];
-        int lineTrap = 0;
-        int columnTrap = 0;
-        int lineKey = 0;
-        int columnKey = 0;
+
+        LinkedList<Trap> traps = new LinkedList<>();
+        Key key = new Key(0,0);
         int lineExit = 0;
         int columnExit = 0;
         for (int i = 0; i < MATRIX_LINE_COLUMN_SIZE; i++) {
@@ -39,12 +43,11 @@ public class MummyMazeAgent extends Agent<MummyMazeState>{
                 matrix[i][j] = line.charAt(j);
                 switch (matrix[i][j]) {
                     case TRAP_CHAR -> {
-                        lineTrap = i;
-                        columnTrap = j;
+                        traps.add(new Trap(i,j));
                     }
                     case KEY_CHAR -> {
-                        lineKey = i;
-                        columnKey = j;
+                        key.line = i;
+                        key.column = j;
                     }
                     case EXIT_CHAR -> {
                         lineExit = i;
@@ -54,7 +57,7 @@ public class MummyMazeAgent extends Agent<MummyMazeState>{
             }
 
         }
-        initialEnvironment = new MummyMazeState(matrix, lineTrap, columnTrap, lineKey, columnKey, lineExit, columnExit);
+        initialEnvironment = new MummyMazeState(matrix, traps, key, lineExit, columnExit);
         resetEnvironment();
         return environment;
     }

@@ -1,21 +1,22 @@
-package mummymaze;
+package mummymaze.actions;
 
 import agent.Action;
+import mummymaze.MummyMazeState;
 
-public class ActionStay extends Action<MummyMazeState>{
+public class ActionDown extends Action<MummyMazeState>{
 
-    public ActionStay(){
+    public ActionDown(){
         super(1);
     }
 
     @Override
     public void execute(MummyMazeState state){
-        state.stay();
+        state.moveDown();
         state.setAction(this);
     }
 
     @Override
     public boolean isValid(MummyMazeState state){
-        return true;
+        return state.canMoveDown();
     }
 }
