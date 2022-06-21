@@ -48,25 +48,25 @@ public class GameArea extends JPanel implements MummyMazeListener {
 		loadImages();
 		showSolutionCost = true;
 	}
-	
+
 	private void loadImages(){
-		trap = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/armadilha.png"));
-		key = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/chave.png"));
-		stairsDown = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/escadaBaixo.png"));
-		stairsUp = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/escadaCima.png"));
-		stairsRight = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/escadaDireita.png"));
-		stairsLeft = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/escadaEsquerda.png"));
-		scorpion = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/escorpiao.png"));
-		hero = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/explorador.png"));
-		beackground = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/fundo.png"));
-		mummyWhite = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/mumiaBranca.png"));
-		mummyRed = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/mumiaVermelha.png"));
-		wallHorizontal = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/paredeHorizontal.png"));
-		wallVertical = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/paredeVertical.png"));
-		doorHorizontalOpen = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/portaHorizontalAberta.png"));
-		doorHorizontalClosed = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/portaHorizontalFechada.png"));
-		doorVerticalOpen = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/portaVerticalAberta.png"));
-		doorVerticalClosed = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/sprites/portaVerticalFechada.png"));
+		trap = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/armadilha.png"));
+		key = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/chave.png"));
+		stairsDown = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/escadaBaixo.png"));
+		stairsUp = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/escadaCima.png"));
+		stairsRight = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/escadaDireita.png"));
+		stairsLeft = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/escadaEsquerda.png"));
+		scorpion = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/escorpiao.png"));
+		hero = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/explorador.png"));
+		beackground = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/fundo.png"));
+		mummyWhite = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/mumiaBranca.png"));
+		mummyRed = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/mumiaVermelha.png"));
+		wallHorizontal = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/paredeHorizontal.png"));
+		wallVertical = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/paredeVertical.png"));
+		doorHorizontalOpen = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/portaHorizontalAberta.png"));
+		doorHorizontalClosed = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/portaHorizontalFechada.png"));
+		doorVerticalOpen = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/portaVerticalAberta.png"));
+		doorVerticalClosed = Toolkit.getDefaultToolkit().getImage(getClass().getResource("./sprites/portaVerticalFechada.png"));
 	}
 	
 	protected void paintComponent(Graphics g){
