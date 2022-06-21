@@ -2,7 +2,7 @@ package mummymaze;
 
 import agent.Agent;
 import mummymaze.heuristics.HeuristicTileDistance;
-import mummymaze.heuristics.HeuristicTilesOutOfPlace;
+import mummymaze.heuristics.HeuristicTilesDistanceToClosestEnemy;
 import mummymaze.models.items.Key;
 import mummymaze.models.items.Trap;
 
@@ -20,7 +20,7 @@ public class MummyMazeAgent extends Agent<MummyMazeState>{
         super(environment);
         initialEnvironment = environment.clone();
         heuristics.add(new HeuristicTileDistance());
-        heuristics.add(new HeuristicTilesOutOfPlace());
+        heuristics.add(new HeuristicTilesDistanceToClosestEnemy());
         heuristic = heuristics.get(0);
     }
             

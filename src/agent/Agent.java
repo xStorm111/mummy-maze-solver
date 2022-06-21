@@ -114,7 +114,7 @@ public class Agent<E extends State> {
 
             sb.append("Statistics updated on:\n" + dirPath + fileName + "\n");
 
-            excelStatistics.generateExcelStatistics(levelFileName, dirPath, fileName);
+            excelStatistics.generateExcelStatistics(levelFileName, dirPath, fileName, heuristics, heuristic);
         }
         return sb.toString();
     }
